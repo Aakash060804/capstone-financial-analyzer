@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financial Analyzer — Capstone Project</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0b0f1a;
+      --surface:   #111827;
+      --border:    #1f2937;
+      --accent:    #3b82f6;
+      --accent2:   #10b981;
+      --text:      #f1f5f9;
+      --muted:     #94a3b8;
+      --card:      #161d2e;
+      --tag-bg:    #1e3a5f;
+      --tag-text:  #93c5fd;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11,15,26,.85);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .5px;
+    }
+    .nav-badge {
+      font-size: .75rem;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: .25rem .7rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 5rem 1.5rem 3.5rem;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59,130,246,.15), transparent);
+    }
+    .hero-eyebrow {
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      max-width: 780px;
+      margin: 0 auto .75rem;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 580px;
+      margin: 0 auto 2rem;
+    }
+    .hero-badges {
+      display: flex;
+      gap: .6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      font-size: .75rem;
+      font-weight: 600;
+      padding: .3rem .8rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .badge.green { border-color: #065f46; color: #6ee7b7; background: #022c22; }
+    .badge.blue  { border-color: #1e3a5f; color: #93c5fd; background: #0c1e38; }
+    .badge.amber { border-color: #78350f; color: #fcd34d; background: #1c0f00; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .75rem 2rem;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: var(--accent); color: #fff; border: none; }
+    .btn-outline  { background: transparent; color: var(--text); border: 1px solid var(--border); }
+
+    /* ── SECTION WRAPPER ── */
+    .section { padding: 3.5rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: .35rem;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-bottom: 2rem;
+    }
+    hr.divider { border: none; border-top: 1px solid var(--border); margin: .5rem 0 2.5rem; }
+
+    /* ── COMPANIES GRID ── */
+    .companies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1rem;
+    }
+    .company-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .company-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .company-ticker {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: .25rem;
+    }
+    .company-name {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-bottom: .8rem;
+    }
+    .company-sector {
+      font-size: .75rem;
+      font-weight: 600;
+      padding: .2rem .65rem;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .it   { background: #0c1e38; color: #93c5fd; }
+    .auto { background: #022c22; color: #6ee7b7; }
+    .oil  { background: #1c0f00; color: #fcd34d; }
+
+    /* ── SHEETS GRID ── */
+    .sheets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .sheet-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    .sheet-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--tag-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .sheet-name { font-weight: 600; font-size: .95rem; margin-bottom: .2rem; }
+    .sheet-desc { font-size: .8rem; color: var(--muted); }
+
+    /* ── PIPELINE ── */
+    .pipeline {
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: .5rem;
+    }
+    .step {
+      flex: 1;
+      min-width: 140px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0;
+      padding: 1.1rem 1rem;
+      text-align: center;
+      position: relative;
+    }
+    .step:first-child { border-radius: 10px 0 0 10px; }
+    .step:last-child  { border-radius: 0 10px 10px 0; }
+    .step + .step { border-left: none; }
+    .step-num {
+      font-size: .7rem;
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+    .step-label {
+      font-size: .85rem;
+      font-weight: 600;
+      margin-top: .25rem;
+    }
+    .step-desc { font-size: .75rem; color: var(--muted); margin-top: .2rem; }
+
+    /* ── COMING SOON ── */
+    .coming-soon {
+      background: linear-gradient(135deg, #0c1e38 0%, #0a1929 100%);
+      border: 1px solid #1e3a5f;
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .coming-soon h2 { font-size: 1.6rem; margin-bottom: .5rem; }
+    .coming-soon p  { color: var(--muted); max-width: 520px; margin: 0 auto 1.5rem; }
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .6rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .pill {
+      font-size: .8rem;
+      font-weight: 500;
+      padding: .3rem .9rem;
+      border-radius: 999px;
+      background: rgba(59,130,246,.1);
+      border: 1px solid rgba(59,130,246,.3);
+      color: #93c5fd;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent2);
+      margin-right: .4rem;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .3; }
+    }
+
+    /* ── TECH STACK ── */
+    .tech-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+    }
+    .tech-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .4rem 1rem;
+      font-size: .85rem;
+      font-weight: 500;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .85rem;
+    }
+    footer strong { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <span class="nav-logo">FinAnalyzer</span>
+    <span class="nav-badge">Capstone Project 2025</span>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-eyebrow">Financial Analysis &amp; Valuation</p>
+    <h1>AI-Powered <span>Financial Analysis</span><br>and 5-Year Valuation</h1>
+    <p>An end-to-end pipeline that scrapes, analyzes, forecasts, and values Indian listed companies using DCF, DuPont, and AI-generated insights.</p>
+    <div class="hero-badges">
+      <span class="badge blue">Python &middot; LangChain &middot; Claude AI</span>
+      <span class="badge green">9 Analysis Sheets</span>
+      <span class="badge amber">DCF Valuation &middot; 5-Year Forecast</span>
+    </div>
+  </section>
+
+  <!-- COMPANIES COVERED -->
+  <div class="section">
+    <p class="section-title">Companies Analyzed</p>
+    <p class="section-sub">Financial data sourced from Screener.in — consolidated statements</p>
+    <hr class="divider" />
+    <div class="companies-grid">
+      <div class="company-card">
+        <div class="company-ticker">INFY</div>
+        <div class="company-name">Infosys Limited</div>
+        <span class="company-sector it">Information Technology</span>
+      </div>
+      <div class="company-card">
+        <div class="company-ticker">TCS</div>
+        <div class="company-name">Tata Consultancy Services</div>
+        <span class="company-sector it">Information Technology</span>
+      </div>
+      <div class="company-card">
+        <div class="company-ticker">RELIANCE</div>
+        <div class="company-name">Reliance Industries Ltd</div>
+        <span class="company-sector oil">Energy &amp; Conglomerates</span>
+      </div>
+      <div class="company-card">
+        <div class="company-ticker">MARUTI</div>
+        <div class="company-name">Maruti Suzuki India Ltd</div>
+        <span class="company-sector auto">Automobile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9 SHEETS -->
+  <div class="section">
+    <p class="section-title">9 Analysis Sheets</p>
+    <p class="section-sub">Each company output contains these structured sheets</p>
+    <hr class="divider" />
+    <div class="sheets-grid">
+      <div class="sheet-card">
+        <div class="sheet-icon">&#128196;</div>
+        <div>
+          <div class="sheet-name">Financial Statements</div>
+          <div class="sheet-desc">Income statement, balance sheet &amp; cash flow — historical data</div>
+        </div>
+      </div>
+      <div class="sheet-card">
+        <div class="sheet-icon">&#128200;</div>
+        <div>
+          <div class="sheet-name">Financial Ratios</div>
+          <div class="sheet-desc">Liquidity, solvency, profitability &amp; efficiency ratios</div>
+        </div>
+      </div>
+      <div class="sheet-card">
+        <div class="sheet-icon">&#128202;</div>
+        <div>
+          <div class="sheet-name">DuPont Analysis</div>
+          <div class="sheet-desc">3-factor &amp; 5-factor ROE decomposition</div>
+        </div>
+      </div>
+      <div class="sheet-card">
+        <div class="sheet-icon">&#128667;</div>
+        <div>
+          <div class="sheet-name">Common Size Analysis</div>
+          <div class="sheet-desc">Vertical analysis of income statement &amp; balance sheet</div>
+        </div>
+      </div>
+      <div class="sheet-card">
+        <div class="sheet-icon">&#128197;</div>
+        <div>
+          <div class="sheet-name">Working Capital Schedule</div>
+          <div class="sheet-desc">Current assets, liabilities &amp; NWC trends</div>
+        </div>
+      </div>
+      <div class="sheet-card">
+        <div class="sheet-icon">&#128181;</div>
+        <div>
+          <div class="sheet-name">Debt Schedule</div>
+          <div class="sheet-desc">Borrowings, interest coverage &amp; debt maturity</div>
+        </div>
+      </div>
+      <div class="sheet-card">
+        <div class="sheet-icon">&#128640;</div>
+        <div>
+          <div class="sheet-name">5-Year Forecast</div>
+          <div class="sheet-desc">Bull / Base / Bear revenue &amp; earnings scenarios</div>
+        </div>
+      </div>
+      <div class="sheet-card">
+        <div class="sheet-icon">&#128179;</div>
+        <div>
+          <div class="sheet-name">DCF Valuation</div>
+          <div class="sheet-desc">Dynamic WACC (CAPM), intrinsic value &amp; margin of safety</div>
+        </div>
+      </div>
+      <div class="sheet-card">
+        <div class="sheet-icon">&#129504;</div>
+        <div>
+          <div class="sheet-name">AI Insights</div>
+          <div class="sheet-desc">Claude-powered narrative analysis &amp; red-flag detection</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="section">
+    <p class="section-title">Pipeline Architecture</p>
+    <p class="section-sub">Automated end-to-end flow from raw web data to valuation</p>
+    <hr class="divider" />
+    <div class="pipeline">
+      <div class="step">
+        <div class="step-num">Step 1</div>
+        <div class="step-label">Scrape</div>
+        <div class="step-desc">Screener.in data extraction</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 2</div>
+        <div class="step-label">Validate</div>
+        <div class="step-desc">Canonical mapping &amp; checks</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 3</div>
+        <div class="step-label">Compute</div>
+        <div class="step-desc">Ratios, DuPont, common size</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 4</div>
+        <div class="step-label">Forecast</div>
+        <div class="step-desc">5-year scenario modeling</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 5</div>
+        <div class="step-label">Value</div>
+        <div class="step-desc">DCF + dynamic WACC</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 6</div>
+        <div class="step-label">AI Report</div>
+        <div class="step-desc">Claude narrative insights</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 7</div>
+        <div class="step-label">Export</div>
+        <div class="step-desc">Excel workbook output</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMING SOON -->
+  <div class="section">
+    <div class="coming-soon">
+      <h2><span class="status-dot"></span>Web Dashboard — Coming Soon</h2>
+      <p>An interactive web application to explore all 9 analysis sheets, compare companies, and visualize DCF valuations and forecasts in real time.</p>
+      <div class="feature-pills">
+        <span class="pill">Interactive Charts</span>
+        <span class="pill">Company Comparison</span>
+        <span class="pill">DCF Sensitivity Table</span>
+        <span class="pill">Scenario Selector</span>
+        <span class="pill">AI Insights Panel</span>
+        <span class="pill">Export to PDF</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TECH STACK -->
+  <div class="section">
+    <p class="section-title">Tech Stack</p>
+    <p class="section-sub">Tools and libraries powering this project</p>
+    <hr class="divider" />
+    <div class="tech-grid">
+      <span class="tech-pill">Python 3.12</span>
+      <span class="tech-pill">Pandas</span>
+      <span class="tech-pill">NumPy</span>
+      <span class="tech-pill">Scikit-learn</span>
+      <span class="tech-pill">Statsmodels</span>
+      <span class="tech-pill">LangChain</span>
+      <span class="tech-pill">LangGraph</span>
+      <span class="tech-pill">Claude (Anthropic)</span>
+      <span class="tech-pill">Selenium</span>
+      <span class="tech-pill">BeautifulSoup</span>
+      <span class="tech-pill">yFinance</span>
+      <span class="tech-pill">OpenPyXL</span>
+      <span class="tech-pill">Plotly</span>
+      <span class="tech-pill">FastAPI (planned)</span>
+      <span class="tech-pill">Next.js (planned)</span>
+      <span class="tech-pill">Vercel</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <strong>Financial Analyzer</strong> &mdash; Capstone Project 2025 &middot; Built with Python &amp; Claude AI
+  </footer>
+
+</body>
+</html>
