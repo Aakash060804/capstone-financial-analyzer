@@ -220,6 +220,38 @@ def main():
         clustering_result = clustering_result,
     )
 
+    # ── 7. JSON Export ────────────────────────────────────────────────────────
+    print("[7/7] Exporting full analysis to JSON...")
+    try:
+        from utils.json_exporter import export_to_json
+        from config.settings import SCREENER_SLUG
+        json_path = export_to_json(
+            output_dir        = OUTPUT_DIR,
+            company_slug      = SCREENER_SLUG,
+            company_name      = COMPANY_NAME,
+            statements        = stmts,
+            canon_df          = canon,
+            ratio_df          = ratios,
+            dupont_df         = dupont,
+            cs_inc            = cs_inc,
+            cs_bal            = cs_bal,
+            wc_schedule       = wc_sched,
+            debt_schedule     = dt_sched,
+            report            = report,
+            scenarios         = scenarios,
+            dcf_result        = dcf_result or {},
+            sensitivity_df    = sensitivity if sensitivity is not None
+                                else __import__("pandas").DataFrame(),
+            anomaly_report    = anomaly_report,
+            wacc_result       = wacc_result if not args.no_forecast else None,
+            prophet_result    = prophet_result if not args.no_forecast else {"available": False},
+            clustering_result = clustering_result,
+        )
+        print(f"       JSON saved → {json_path}")
+    except Exception as e:
+        print(f"       JSON export failed: {e}")
+    # ──────────────────────────────────────────────────────────────────────────
+
     elapsed = time.time() - t_start
     print(f"\n{'═'*65}")
     print(f"  ✅  Complete in {elapsed:.1f}s")
