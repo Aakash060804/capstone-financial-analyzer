@@ -31,3 +31,4 @@ build/
 # Webapp
 webapp/node_modules/
 webapp/.next/
+.qodo
