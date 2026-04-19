@@ -4,10 +4,26 @@ import { useRouter } from "next/navigation";
 import Topbar from "@/components/Topbar";
 
 const COMPANIES = [
-  { slug: "INFY",     name: "Infosys Limited",            sector: "IT Services",   intrinsic: "₹1,432", rating: "Adequate" },
-  { slug: "TCS",      name: "Tata Consultancy Services",  sector: "IT Services",   intrinsic: "₹2,361", rating: "Strong" },
-  { slug: "RELIANCE", name: "Reliance Industries",        sector: "Energy",        intrinsic: "₹8,777", rating: "Strong" },
-  { slug: "MARUTI",   name: "Maruti Suzuki India",        sector: "Automobile",    intrinsic: "₹5,227", rating: "Adequate" },
+  // IT / Technology
+  { slug: "INFY",         name: "Infosys Limited",            sector: "IT Services",  rating: "Adequate" },
+  { slug: "TCS",          name: "Tata Consultancy Services",  sector: "IT Services",  rating: "Strong"   },
+  { slug: "WIPRO",        name: "Wipro Limited",              sector: "IT Services",  rating: "Adequate" },
+  { slug: "HCLTECH",      name: "HCL Technologies",           sector: "IT Services",  rating: "Strong"   },
+  { slug: "TECH-M",       name: "Tech Mahindra",              sector: "IT Services",  rating: "Adequate" },
+  { slug: "LTIM",         name: "LTIMindtree",                sector: "IT Services",  rating: "Strong"   },
+  // Automobile
+  { slug: "MARUTI",       name: "Maruti Suzuki India",        sector: "Automobile",   rating: "Adequate" },
+  { slug: "TATAMOTORS",   name: "Tata Motors",                sector: "Automobile",   rating: "Adequate" },
+  { slug: "HERO-MOTOCORP",name: "Hero MotoCorp",              sector: "Automobile",   rating: "Strong"   },
+  { slug: "BAJAJ-AUTO-LTD",name: "Bajaj Auto",               sector: "Automobile",   rating: "Strong"   },
+  { slug: "EICHER-MOTORS",name: "Eicher Motors (Royal Enfield)", sector: "Automobile", rating: "Strong" },
+  // Energy / Oil & Gas
+  { slug: "RELIANCE",     name: "Reliance Industries",        sector: "Energy",       rating: "Strong"   },
+  { slug: "ONGC",         name: "Oil & Natural Gas Corp",     sector: "Energy",       rating: "Adequate" },
+  { slug: "BPCL",         name: "Bharat Petroleum",           sector: "Energy",       rating: "Adequate" },
+  { slug: "IOC",          name: "Indian Oil Corporation",     sector: "Energy",       rating: "Adequate" },
+  { slug: "NTPC",         name: "NTPC Limited",               sector: "Energy",       rating: "Strong"   },
+  { slug: "POWERGRID",    name: "Power Grid Corporation",     sector: "Energy",       rating: "Strong"   },
 ];
 
 const FEATURES = [
@@ -86,7 +102,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>DCF Intrinsic</p>
-                  <p className="text-lg font-black" style={{ color: "#3b7cf4" }}>{c.intrinsic}</p>
+                  <p className="text-lg font-black" style={{ color: "#3b7cf4" }}>View →</p>
                 </div>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ color: ratingColor(c.rating), background: `${ratingColor(c.rating)}18`, border: `1px solid ${ratingColor(c.rating)}33` }}>
                   {c.rating}
