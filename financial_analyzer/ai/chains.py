@@ -354,32 +354,25 @@ class FinancialAnalysisChains:
         logger.info("  Context block built — historical trends + peer benchmarks ready")
         # ──────────────────────────────────────────────────────────────────────
 
-        # Step 1: Run category chains IN PARALLEL (was sequential — 6 calls × ~15s = 90s)
-        logger.info("Step 1/3: Generating category commentaries (parallel)...")
-        from concurrent.futures import ThreadPoolExecutor, as_completed
+        # Step 1: Run category chains
+        logger.info("Step 1/3: Generating category commentaries...")
         commentaries = []
-        with ThreadPoolExecutor(max_workers=6) as pool:
-            futures = {
-                pool.submit(self._run_category_chain, cat, names, ratio_df, company, years_str): cat
-                for cat, names in RATIO_CATEGORIES.items()
-            }
-            for fut in as_completed(futures):
-                result = fut.result()
-                if result:
-                    commentaries.append(result)
-        # Sort to keep consistent ordering
-        cat_order = list(RATIO_CATEGORIES.keys())
-        commentaries.sort(key=lambda c: cat_order.index(c.category) if c.category in cat_order else 99)
+        for category, ratio_names in RATIO_CATEGORIES.items():
+            result = self._run_category_chain(
+                category, ratio_names, ratio_df, company, years_str
+            )
+            if result:
+                commentaries.append(result)
 
-        # Step 2 + 3: Run synthesis and red-flag chains IN PARALLEL
-        logger.info("Step 2+3/3: Synthesizing thesis & scanning red flags (parallel)...")
+        # Step 2: Run synthesis chain
+        logger.info("Step 2/3: Synthesizing investment thesis...")
         thesis = None
-        red_flags = None
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            f_thesis = pool.submit(self._run_synthesis_chain, company, commentaries, ratio_df) if commentaries else None
-            f_flags  = pool.submit(self._run_red_flag_chain, company, ratio_df)
-            thesis     = f_thesis.result() if f_thesis else None
-            red_flags  = f_flags.result()
+        if commentaries:
+            thesis = self._run_synthesis_chain(company, commentaries, ratio_df)
+
+        # Step 3: Run red flag chain
+        logger.info("Step 3/3: Scanning for red flags...")
+        red_flags = self._run_red_flag_chain(company, ratio_df)
 
         # Assemble final report
         if not thesis:

@@ -24,6 +24,8 @@ def parse_args():
     parser.add_argument("--no-ai",       action="store_true")
     parser.add_argument("--no-cache",    action="store_true")
     parser.add_argument("--no-forecast", action="store_true")
+    parser.add_argument("--fast",        action="store_true",
+                        help="Skip Prophet + anomaly detection. Targets ~30s total.")
     return parser.parse_args()
 
 
@@ -74,28 +76,22 @@ def main():
             print(f"       ⚠  {w}")
 
     # ── 2.5 Anomaly Detection ──────────────────────────────────────────────────
-    # Scans all 14 years of canonical data BEFORE any ratio is calculated.
-    # Uses Z-Score + Isolation Forest + hard rules + trend break detection.
-    # Result flows into the DATA QUALITY REPORT in the Audit Trail sheet.
     print("[2.5/7] Running anomaly detection...")
     anomaly_report = {"flags": [], "summary": {
         "metrics_scanned": 0, "years_scanned": 0,
         "total_flags": 0, "errors": 0, "warnings": 0,
         "info_count": 0, "integrity_score": 100.0,
     }}
-    try:
-        from extraction.anomaly_detector import run_anomaly_detection
-        anomaly_report = run_anomaly_detection(canon)
-        s = anomaly_report["summary"]
-        print(
-            f"       Scan complete — {s['total_flags']} flags "
-            f"({s['errors']} errors, {s['warnings']} warnings, {s['info_count']} info)"
-        )
-        print(f"       Data integrity score: {s['integrity_score']}%")
-        if s["errors"] > 0:
-            print("       ⚠  ERROR level anomalies found — review Audit Trail before trusting results")
-    except Exception as e:
-        print(f"       Anomaly detection failed: {e} — continuing pipeline")
+    if args.fast:
+        print("       Skipped (--fast mode)")
+    else:
+        try:
+            from extraction.anomaly_detector import run_anomaly_detection
+            anomaly_report = run_anomaly_detection(canon)
+            s = anomaly_report["summary"]
+            print(f"       Scan complete — {s['total_flags']} flags · integrity: {s['integrity_score']}%")
+        except Exception as e:
+            print(f"       Anomaly detection failed: {e} — continuing pipeline")
     # ──────────────────────────────────────────────────────────────────────────
 
     # ── 3. Engine ──────────────────────────────────────────────────────────────
@@ -148,40 +144,49 @@ def main():
         scenarios  = build_scenarios(canon)
 
         # ── Prophet Time Series Forecasting ───────────────────────────────────
-        # Trains Prophet on 14 years of Revenue, EBITDA, FCF data.
-        # Produces model-derived forecasts with 80% confidence intervals.
-        # Runs alongside assumptions-based scenarios — both appear in Excel.
         print("[5.5/7] Running Prophet time series forecast...")
         prophet_result = {"available": False}
-        try:
-            from forecasting.prophet_forecast import run_prophet_forecast
-            from config.settings import FORECAST_YEARS as FY
-            prophet_result = run_prophet_forecast(canon, forecast_years=FY)
-            if prophet_result.get("available"):
-                print(f"       Prophet complete — Revenue/EBITDA/FCF models trained")
-            else:
-                print("       Prophet not available — install with: pip install prophet")
-        except Exception as e:
-            print(f"       Prophet failed: {e} — continuing pipeline")
+        if args.fast:
+            print("       Skipped (--fast mode) — Prophet can take 2-5 min, not suitable for web")
+        else:
+            try:
+                import signal as _signal
+
+                def _timeout_handler(signum, frame):
+                    raise TimeoutError("Prophet exceeded 90s limit")
+
+                _signal.signal(_signal.SIGALRM, _timeout_handler)
+                _signal.alarm(90)   # hard 90-second limit per Prophet run
+                try:
+                    from forecasting.prophet_forecast import run_prophet_forecast
+                    from config.settings import FORECAST_YEARS as FY
+                    prophet_result = run_prophet_forecast(canon, forecast_years=FY)
+                    if prophet_result.get("available"):
+                        print(f"       Prophet complete — Revenue/EBITDA/FCF models trained")
+                    else:
+                        print("       Prophet not available")
+                finally:
+                    _signal.alarm(0)  # cancel alarm
+            except (TimeoutError, Exception) as e:
+                print(f"       Prophet skipped: {e} — continuing pipeline")
         # ──────────────────────────────────────────────────────────────────────
 
         # ── Dynamic WACC ───────────────────────────────────────────────────────
-        # Computes company-specific WACC using CAPM.
-        # Fetches beta from NSE API, derives Kd from actual financials.
         print("[2.7/7] Computing dynamic WACC...")
         wacc_result = None
         dynamic_wacc = None
         try:
+            from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
             from forecasting.wacc_calculator import compute_wacc
             from config.settings import SCREENER_SLUG
-            wacc_result  = compute_wacc(canon, symbol=SCREENER_SLUG)
-            dynamic_wacc = wacc_result["wacc"]
-            print(f"       Beta: {wacc_result['beta']:.2f} ({wacc_result['beta_source']})")
-            print(f"       Cost of Equity (CAPM): {wacc_result['cost_of_equity']*100:.2f}%")
-            print(f"       Cost of Debt: {wacc_result['cost_of_debt']*100:.2f}%")
-            print(f"       Dynamic WACC: {dynamic_wacc*100:.2f}%")
-        except Exception as e:
-            print(f"       Dynamic WACC failed ({e}) — using settings default")
+            wacc_timeout = 15 if args.fast else 45
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                fut = pool.submit(compute_wacc, canon, SCREENER_SLUG)
+                wacc_result  = fut.result(timeout=wacc_timeout)
+                dynamic_wacc = wacc_result["wacc"]
+            print(f"       WACC: {dynamic_wacc*100:.2f}% · Beta: {wacc_result['beta']:.2f} ({wacc_result['beta_source']})")
+        except (FutureTimeout, Exception) as e:
+            print(f"       Dynamic WACC skipped ({type(e).__name__}) — using settings default")
         # ──────────────────────────────────────────────────────────────────────
 
         dcf_result = run_dcf(canon, face_value=face_value, wacc=dynamic_wacc)

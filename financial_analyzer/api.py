@@ -2,13 +2,13 @@
 FastAPI backend — runs the financial analysis pipeline on demand.
 Deploy on Railway: railway up
 """
-import json, os, subprocess, time
+import json, os, subprocess, uuid
 from pathlib import Path
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-BASE    = Path(__file__).parent
+BASE = Path(__file__).parent
 OUTPUTS = BASE / "outputs"
 OUTPUTS.mkdir(exist_ok=True)
 
@@ -21,17 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory job tracker
+# In-memory job tracker: company -> status dict
 jobs: dict[str, dict] = {}
-
-STEP_MESSAGES = [
-    "Fetching financial data from Screener.in…",
-    "Building canonical statements…",
-    "Computing ratios, DuPont & schedules…",
-    "Running DCF valuation & Monte Carlo…",
-    "Generating AI investment commentary…",
-    "Exporting results…",
-]
 
 
 @app.get("/")
@@ -52,13 +43,16 @@ def analyze(company: str, background_tasks: BackgroundTasks):
     slug = company.upper()
     path = OUTPUTS / f"{slug}_financial_data.json"
 
+    # Already cached — return immediately
     if path.exists():
         return {"status": "cached", "company": slug}
 
+    # Already running
     if jobs.get(slug, {}).get("status") == "running":
-        return {"status": "running", "company": slug, **jobs[slug]}
+        return {"status": "running", "company": slug}
 
-    jobs[slug] = {"status": "running", "company": slug, "step": 0, "message": STEP_MESSAGES[0], "started_at": time.time()}
+    # Start pipeline in background
+    jobs[slug] = {"status": "running", "company": slug, "message": "Pipeline started…", "started_at": time.time(), "step": 0}
     background_tasks.add_task(run_pipeline, slug)
     return {"status": "started", "company": slug}
 
@@ -67,8 +61,6 @@ def analyze(company: str, background_tasks: BackgroundTasks):
 def get_status(company: str):
     slug = company.upper()
     path = OUTPUTS / f"{slug}_financial_data.json"
-
-    # File exists = done (most reliable signal)
     if path.exists():
         jobs.pop(slug, None)
         return {"status": "done", "company": slug}
@@ -77,56 +69,31 @@ def get_status(company: str):
     if not job:
         return {"status": "not_started"}
 
-    # Auto-timeout after 8 minutes
+    # Auto-timeout after 2 minutes
     elapsed = time.time() - job.get("started_at", time.time())
-    if elapsed > 480 and job["status"] == "running":
+    if elapsed > 120 and job["status"] == "running":
         jobs[slug] = {**job, "status": "error", "message": "Pipeline timed out. Try again."}
 
     return jobs[slug]
 
 
 def run_pipeline(company: str):
-    def upd(step: int, msg: str = ""):
-        jobs[company] = {
-            **jobs.get(company, {}),
-            "status": "running",
-            "step": step,
-            "message": msg or STEP_MESSAGES[min(step, len(STEP_MESSAGES) - 1)],
-        }
-
     try:
-        upd(0, "Fetching financial data from Screener.in…")
+        jobs[company]["message"] = "Scraping data from Screener.in…"
         result = subprocess.run(
-            ["python", "main.py", "--company", company],
+            ["python", "main.py", "--company", company, "--fast"],
             cwd=BASE,
             capture_output=True,
             text=True,
-            timeout=480,
+            timeout=120,   # hard 2-min cap; --fast should finish in ~30s
             env={**os.environ},
         )
-
-        # Parse stdout to advance step counter
-        for line in (result.stdout or "").splitlines():
-            if "[2/7]" in line or "[2.5/7]" in line:
-                upd(1, "Building canonical statements & anomaly detection…")
-            elif "[3/7]" in line or "[3.5/7]" in line:
-                upd(2, "Computing ratios, DuPont & industry classification…")
-            elif "[4/7]" in line:
-                upd(4, "Generating AI investment commentary (parallel)…")
-            elif "[5/7]" in line or "[5.5/7]" in line or "[2.7/7]" in line:
-                upd(3, "Running DCF valuation, WACC & Monte Carlo simulation…")
-            elif "[6/7]" in line:
-                upd(5, "Building Excel workbook…")
-            elif "[7/7]" in line:
-                upd(5, "Exporting JSON — almost done…")
-
         if result.returncode == 0:
-            jobs[company] = {"status": "done", "company": company, "step": 6}
+            jobs[company] = {"status": "done", "company": company}
         else:
-            err = (result.stderr or result.stdout or "Unknown error")[-600:]
-            jobs[company] = {"status": "error", "company": company, "message": err}
-
+            err = result.stderr[-800:] if result.stderr else result.stdout[-800:]
+            jobs[company] = {"status": "error", "company": company, "error": err}
     except subprocess.TimeoutExpired:
-        jobs[company] = {"status": "error", "company": company, "message": "Pipeline timed out after 8 minutes. Try again."}
+        jobs[company] = {"status": "error", "company": company, "error": "Pipeline timed out after 8 minutes"}
     except Exception as e:
-        jobs[company] = {"status": "error", "company": company, "message": str(e)}
+        jobs[company] = {"status": "error", "company": company, "error": str(e)}

@@ -15,9 +15,9 @@ OUTPUT_DIR      = "outputs"
 OUTPUT_FILENAME = f"{SCREENER_SLUG}_Financial_Analysis.xlsx"
 
 # ── LLM ────────────────────────────────────────────────────────────────────────
-LLM_MODEL      = "claude-sonnet-4-20250514"
-LLM_MAX_TOKENS = 2000
-LLM_TEMPERATURE = 0.3
+LLM_MODEL      = "claude-haiku-4-5-20251001"   # 10x faster than Sonnet for structured JSON
+LLM_MAX_TOKENS = 1200                           # haiku is concise, 1200 is enough
+LLM_TEMPERATURE = 0.2
 
 # ── Forecasting ────────────────────────────────────────────────────────────────
 FORECAST_YEARS = 5

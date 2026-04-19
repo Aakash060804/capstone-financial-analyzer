@@ -41,7 +41,7 @@ logger = get_logger(__name__)
 # SIMULATION PARAMETERS
 # ─────────────────────────────────────────────────────────────────────────────
 
-N_SIMULATIONS = 2_000   # reduced from 10_000 — still statistically robust, 5× faster
+N_SIMULATIONS = 10_000
 RANDOM_SEED   = 42          # reproducible results
 
 # WACC distribution — normal distribution around base case

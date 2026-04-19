@@ -32,9 +32,9 @@ function DownloadBtn({ href, label, sub, icon }: { href: string; label: string; 
 export default function ReportsPage() {
   const { company } = useParams() as { company: string };
   const slug = company?.toUpperCase() ?? "";
-  const { data, status, message, step } = useCompanyData(slug);
+  const { data, status, message } = useCompanyData(slug);
 
-  if (status === "loading" || status === "running") return <PipelineLoader company={slug} message={message} step={step} />;
+  if (status === "loading" || status === "running") return <PipelineLoader company={slug} message={message} />;
   if (status === "error") return <div className="text-fin-red text-sm mt-10 text-center">{message}</div>;
   if (!data) return <div className="text-muted text-sm mt-10 text-center">No data found.</div>;
 
