@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { FinancialData } from "@/types/financial";
 import { fmtCr, fmtNum } from "@/lib/dataUtils";
+import { useCompanyData } from "@/lib/useCompanyData";
 import SectionCard from "@/components/SectionCard";
 import FinTable from "@/components/FinTable";
+import PipelineLoader from "@/components/PipelineLoader";
 import { SurfacePlot3D, MonteCarlo3D } from "@/components/Plot3D";
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -20,19 +20,13 @@ function ValCard({ label, value, sub, accent }: { label: string; value: string; 
 
 export default function ValuationPage() {
   const { company } = useParams() as { company: string };
-  const [data, setData] = useState<FinancialData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const slug = company?.toUpperCase() ?? "";
+  const { data, status, message } = useCompanyData(slug);
 
-  useEffect(() => {
-    fetch(`/data/${company?.toUpperCase()}_financial_data.json`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [company]);
-
-  if (loading) return <div className="flex items-center justify-center h-64 text-muted animate-pulse">Loading valuation…</div>;
+  if (status === "loading" || status === "running") return <PipelineLoader company={slug} message={message} />;
+  if (status === "error") return <div className="text-fin-red text-sm mt-10 text-center">{message}</div>;
   if (!data?.forecasts?.dcf?.valuation?.intrinsic_value_per_share) {
-    return <div className="text-fin-red text-sm">No DCF data. Run the pipeline without --no-forecast.</div>;
+    return <div className="text-fin-red text-sm mt-10 text-center">No DCF data available.</div>;
   }
 
   const dcf  = data.forecasts.dcf;

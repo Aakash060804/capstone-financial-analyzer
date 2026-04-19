@@ -1,26 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { FinancialData } from "@/types/financial";
 import { buildScenarioInsights, getSeries, getLastValue, cagr, fmtCr, getYears } from "@/lib/dataUtils";
+import { useCompanyData } from "@/lib/useCompanyData";
 import SectionCard from "@/components/SectionCard";
 import CombinedScenarioChart from "@/components/CombinedScenarioChart";
 import FinTable from "@/components/FinTable";
+import PipelineLoader from "@/components/PipelineLoader";
 
 export default function ForecastPage() {
   const { company } = useParams() as { company: string };
-  const [data, setData] = useState<FinancialData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const slug = company?.toUpperCase() ?? "";
+  const { data, status, message } = useCompanyData(slug);
 
-  useEffect(() => {
-    fetch(`/data/${company?.toUpperCase()}_financial_data.json`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [company]);
-
-  if (loading) return <div className="flex items-center justify-center h-64 text-muted animate-pulse">Loading forecasts…</div>;
-  if (!data) return <div className="text-fin-red text-sm">No data. Run the pipeline first.</div>;
+  if (status === "loading" || status === "running") return <PipelineLoader company={slug} message={message} />;
+  if (status === "error") return <div className="text-fin-red text-sm mt-10 text-center">{message}</div>;
+  if (!data) return <div className="text-muted text-sm mt-10 text-center">No data found.</div>;
 
   const sc = data.forecasts.scenarios;
   const hasScenarios = sc?.base?.rows?.length > 0;

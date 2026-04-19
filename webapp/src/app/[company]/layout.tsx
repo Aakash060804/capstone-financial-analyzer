@@ -1,24 +1,15 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Topbar from "@/components/Topbar";
 import CompanySubNav from "@/components/CompanySubNav";
-import { FinancialData } from "@/types/financial";
 import GrowthBadge from "@/components/GrowthBadge";
 import { buildSnapshotKPIs } from "@/lib/dataUtils";
+import { useCompanyData } from "@/lib/useCompanyData";
 
 export default function CompanyLayout({ children }: { children: React.ReactNode }) {
   const params = useParams();
   const company = (params?.company as string)?.toUpperCase() ?? "";
-  const [data, setData] = useState<FinancialData | null>(null);
-
-  useEffect(() => {
-    if (!company) return;
-    fetch(`/data/${company}_financial_data.json`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((d) => setData(d))
-      .catch(() => setData(null));
-  }, [company]);
+  const { data } = useCompanyData(company);
 
   const kpis = data ? buildSnapshotKPIs(data) : [];
   const revenue = kpis.find((k) => k.label === "Revenue");
@@ -35,7 +26,6 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
       <Topbar />
       <CompanySubNav company={company} />
 
-      {/* Company header strip — Finology style */}
       <div className="border-b border-border bg-surface">
         <div className="max-w-[1400px] mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
           <div className="flex items-center gap-4 flex-wrap">
@@ -59,7 +49,6 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
             </div>
           </div>
 
-          {/* Quick stats row */}
           <div className="flex items-center gap-6 flex-wrap">
             {revenue && (
               <div className="text-right">
@@ -90,7 +79,6 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
         </div>
       </div>
 
-      {/* Page content */}
       <div className="max-w-[1400px] mx-auto px-6 py-8">
         {children}
       </div>

@@ -1,12 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { FinancialData } from "@/types/financial";
 import { buildSnapshotKPIs, buildDerivedInsights, getSeries } from "@/lib/dataUtils";
+import { useCompanyData } from "@/lib/useCompanyData";
 import KPICard from "@/components/KPICard";
 import SectionCard from "@/components/SectionCard";
 import FinTable from "@/components/FinTable";
 import GrowthBadge from "@/components/GrowthBadge";
+import PipelineLoader from "@/components/PipelineLoader";
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
@@ -15,35 +15,11 @@ import {
 export default function SnapshotPage() {
   const { company } = useParams() as { company: string };
   const slug = company?.toUpperCase() ?? "";
+  const { data, status, message } = useCompanyData(slug);
 
-  const [data, setData] = useState<FinancialData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch(`/data/${slug}_financial_data.json`)
-      .then((r) => { if (!r.ok) throw new Error("not found"); return r.json(); })
-      .then((d: FinancialData) => { setData(d); setLoading(false); })
-      .catch(() => { setError("No data found. Run the pipeline first."); setLoading(false); });
-  }, [slug]);
-
-  if (loading) return (
-    <div className="flex items-center justify-center h-64 text-muted">
-      <div className="text-center"><div className="text-4xl mb-3 animate-pulse">⏳</div><p>Loading {slug}…</p></div>
-    </div>
-  );
-
-  if (error || !data) return (
-    <div className="max-w-lg mx-auto mt-10 rounded-xl border border-fin-red/30 bg-fin-red/5 p-6 text-center">
-      <p className="text-fin-red font-semibold mb-2">Data Not Found</p>
-      <p className="text-txt2 text-sm mb-4">{error}</p>
-      <pre className="text-left bg-surface2 rounded-lg p-3 text-xs text-txt2 overflow-x-auto">
-{`cd financial_analyzer
-python main.py --company ${slug}
-cp outputs/${slug}_financial_data.json ../webapp/public/data/`}
-      </pre>
-    </div>
-  );
+  if (status === "loading" || status === "running") return <PipelineLoader company={slug} message={message} />;
+  if (status === "error") return <div className="text-fin-red text-sm mt-10 text-center">{message}</div>;
+  if (!data) return <div className="text-muted text-sm mt-10 text-center">No data found.</div>;
 
   const kpis    = buildSnapshotKPIs(data);
   const insights = buildDerivedInsights(data);

@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { FinancialData } from "@/types/financial";
-import { buildHealthScore, getSeries, getLastValue, fmtNum } from "@/lib/dataUtils";
+import { buildHealthScore, getLastValue, fmtNum } from "@/lib/dataUtils";
+import { useCompanyData } from "@/lib/useCompanyData";
 import SectionCard from "@/components/SectionCard";
 import SparkLine from "@/components/SparkLine";
 import FinTable from "@/components/FinTable";
+import PipelineLoader from "@/components/PipelineLoader";
 
 // ── Health Score Ring ──────────────────────────────────────────────────────────
 function ScoreRing({ score, size = 120 }: { score: number; size?: number }) {
@@ -22,7 +22,7 @@ function ScoreRing({ score, size = 120 }: { score: number; size?: number }) {
         strokeDasharray={`${fill} ${circ - fill}`}
         strokeLinecap="round"
         transform={`rotate(-90 ${size/2} ${size/2})`}
-        style={{ transition: "stroke-dasharray 0.8s ease" }}
+        className="transition-[stroke-dasharray] duration-700 ease-in-out"
       />
       <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill={color} fontSize={size * 0.22} fontWeight="900">{score}</text>
       <text x="50%" y="67%" dominantBaseline="middle" textAnchor="middle" fill="#4a6080" fontSize={size * 0.1}>/ 100</text>
@@ -40,7 +40,7 @@ function ScoreBar({ label, score, weight }: { label: string; score: number; weig
         <span className="text-muted">{weight} · <span className="text-txt font-semibold num">{score}</span></span>
       </div>
       <div className="h-1.5 rounded-full bg-surface2 overflow-hidden">
-        <div className={`h-full rounded-full ${color} transition-all duration-700`} style={{ width: `${score}%` }} />
+        <div className={`h-full rounded-full ${color} transition-all duration-700 w-[var(--bar)]`} style={{ "--bar": `${score}%` } as React.CSSProperties} />
       </div>
     </div>
   );
@@ -124,18 +124,12 @@ const RATIO_CATEGORIES = [
 
 export default function AnalysisPage() {
   const { company } = useParams() as { company: string };
-  const [data, setData] = useState<FinancialData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const slug = company?.toUpperCase() ?? "";
+  const { data, status, message } = useCompanyData(slug);
 
-  useEffect(() => {
-    fetch(`/data/${company?.toUpperCase()}_financial_data.json`)
-      .then((r) => r.ok ? r.json() : null)
-      .then((d) => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [company]);
-
-  if (loading) return <div className="flex items-center justify-center h-64 text-muted animate-pulse">Loading analysis…</div>;
-  if (!data) return <div className="text-fin-red text-sm">No data. Run the pipeline first.</div>;
+  if (status === "loading" || status === "running") return <PipelineLoader company={slug} message={message} />;
+  if (status === "error") return <div className="text-fin-red text-sm mt-10 text-center">{message}</div>;
+  if (!data) return <div className="text-muted text-sm mt-10 text-center">No data found.</div>;
 
   const score = buildHealthScore(data);
   const scoreColor = score.total >= 70 ? "text-fin-green" : score.total >= 45 ? "text-fin-amber" : "text-fin-red";
