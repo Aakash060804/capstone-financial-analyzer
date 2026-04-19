@@ -11,12 +11,14 @@ const COMPANIES = [
   { slug: "HCLTECH",      name: "HCL Technologies",           sector: "IT Services",  rating: "Strong"   },
   { slug: "TECH-M",       name: "Tech Mahindra",              sector: "IT Services",  rating: "Adequate" },
   { slug: "LTIM",         name: "LTIMindtree",                sector: "IT Services",  rating: "Strong"   },
+  { slug: "PERSISTENT-SYSTEMS", name: "Persistent Systems",  sector: "IT Services",  rating: "Strong"   },
   // Automobile
   { slug: "MARUTI",       name: "Maruti Suzuki India",        sector: "Automobile",   rating: "Adequate" },
   { slug: "TATAMOTORS",   name: "Tata Motors",                sector: "Automobile",   rating: "Adequate" },
   { slug: "HERO-MOTOCORP",name: "Hero MotoCorp",              sector: "Automobile",   rating: "Strong"   },
   { slug: "BAJAJ-AUTO-LTD",name: "Bajaj Auto",               sector: "Automobile",   rating: "Strong"   },
   { slug: "EICHER-MOTORS",name: "Eicher Motors (Royal Enfield)", sector: "Automobile", rating: "Strong" },
+  { slug: "MM",           name: "Mahindra & Mahindra",          sector: "Automobile",   rating: "Strong"   },
   // Energy / Oil & Gas
   { slug: "RELIANCE",     name: "Reliance Industries",        sector: "Energy",       rating: "Strong"   },
   { slug: "ONGC",         name: "Oil & Natural Gas Corp",     sector: "Energy",       rating: "Adequate" },
@@ -24,6 +26,7 @@ const COMPANIES = [
   { slug: "IOC",          name: "Indian Oil Corporation",     sector: "Energy",       rating: "Adequate" },
   { slug: "NTPC",         name: "NTPC Limited",               sector: "Energy",       rating: "Strong"   },
   { slug: "POWERGRID",    name: "Power Grid Corporation",     sector: "Energy",       rating: "Strong"   },
+  { slug: "GAIL",         name: "GAIL (India) Limited",        sector: "Energy",       rating: "Adequate" },
 ];
 
 const FEATURES = [
