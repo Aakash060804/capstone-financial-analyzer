@@ -21,9 +21,9 @@ function ValCard({ label, value, sub, accent }: { label: string; value: string; 
 export default function ValuationPage() {
   const { company } = useParams() as { company: string };
   const slug = company?.toUpperCase() ?? "";
-  const { data, status, message } = useCompanyData(slug);
+  const { data, status, message, step } = useCompanyData(slug);
 
-  if (status === "loading" || status === "running") return <PipelineLoader company={slug} message={message} />;
+  if (status === "loading" || status === "running") return <PipelineLoader company={slug} message={message} step={step} />;
   if (status === "error") return <div className="text-fin-red text-sm mt-10 text-center">{message}</div>;
   if (!data?.forecasts?.dcf?.valuation?.intrinsic_value_per_share) {
     return <div className="text-fin-red text-sm mt-10 text-center">No DCF data available.</div>;

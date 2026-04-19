@@ -10,17 +10,16 @@ export interface CompanyDataState {
   data: FinancialData | null;
   status: DataStatus;
   message: string;
+  step: number;
 }
 
 async function fetchData(slug: string): Promise<FinancialData | null> {
-  // Try API
   if (API) {
     try {
       const r = await fetch(`${API}/data/${slug}`);
       if (r.ok) { const d = await r.json(); if (!d.error) return d; }
     } catch {}
   }
-  // Fall back to bundled static files
   try {
     const r = await fetch(`/data/${slug}_financial_data.json`);
     if (r.ok) return r.json();
@@ -29,7 +28,7 @@ async function fetchData(slug: string): Promise<FinancialData | null> {
 }
 
 export function useCompanyData(company: string): CompanyDataState {
-  const [state, setState] = useState<CompanyDataState>({ data: null, status: "loading", message: "Loading…" });
+  const [state, setState] = useState<CompanyDataState>({ data: null, status: "loading", message: "Loading…", step: 0 });
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -38,54 +37,53 @@ export function useCompanyData(company: string): CompanyDataState {
     let cancelled = false;
 
     async function init() {
-      setState({ data: null, status: "loading", message: "Loading…" });
+      setState({ data: null, status: "loading", message: "Checking for cached data…", step: 0 });
 
-      // 1. Try to load cached data
+      // 1. Try to load cached data first
       const cached = await fetchData(slug);
       if (cancelled) return;
-      if (cached) { setState({ data: cached, status: "done", message: "" }); return; }
+      if (cached) { setState({ data: cached, status: "done", message: "", step: 6 }); return; }
 
-      // 2. No data — trigger pipeline if API is available
-      if (!API) { setState({ data: null, status: "not_found", message: "No data found. Run the pipeline first." }); return; }
+      // 2. No data — trigger pipeline
+      if (!API) {
+        setState({ data: null, status: "not_found", message: "No data found. Run the pipeline first.", step: 0 });
+        return;
+      }
 
-      setState({ data: null, status: "running", message: "Starting analysis pipeline…" });
+      setState({ data: null, status: "running", message: "Starting analysis pipeline…", step: 0 });
 
       try {
         await fetch(`${API}/analyze/${slug}`, { method: "POST" });
       } catch {
-        setState({ data: null, status: "error", message: "Could not reach the analysis API." });
+        setState({ data: null, status: "error", message: "Could not reach the analysis server.", step: 0 });
         return;
       }
 
-      // 3. Poll every 6 seconds
-      let elapsed = 0;
-      const messages = [
-        "Scraping financial data from Screener.in…",
-        "Building income statement, balance sheet & cash flows…",
-        "Calculating ratios, DuPont & common-size statements…",
-        "Running DCF valuation & Monte Carlo simulation…",
-        "Generating AI investment commentary…",
-        "Finalising analysis — almost done…",
-      ];
-
+      // 3. Poll every 4 seconds for fast feedback
       pollRef.current = setInterval(async () => {
         if (cancelled) { clearInterval(pollRef.current!); return; }
-        elapsed += 6;
-        const msgIdx = Math.min(Math.floor(elapsed / 25), messages.length - 1);
-        setState((s) => ({ ...s, message: messages[msgIdx] }));
-
         try {
           const st = await fetch(`${API}/status/${slug}`).then((r) => r.json());
+
           if (st.status === "done") {
             clearInterval(pollRef.current!);
             const fresh = await fetchData(slug);
-            if (!cancelled) setState({ data: fresh, status: fresh ? "done" : "error", message: "" });
+            if (!cancelled) setState({ data: fresh, status: fresh ? "done" : "error", message: "", step: 6 });
+
           } else if (st.status === "error") {
             clearInterval(pollRef.current!);
-            if (!cancelled) setState({ data: null, status: "error", message: st.error ?? "Pipeline failed." });
+            if (!cancelled) setState({ data: null, status: "error", message: st.message ?? "Pipeline failed.", step: 0 });
+
+          } else if (st.status === "running") {
+            if (!cancelled) setState((prev) => ({
+              ...prev,
+              status: "running",
+              message: st.message ?? prev.message,
+              step: st.step ?? prev.step,
+            }));
           }
         } catch {}
-      }, 6000);
+      }, 4000);
     }
 
     init();
