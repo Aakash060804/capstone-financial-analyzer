@@ -9,7 +9,7 @@ export default function Navbar() {
           FinAnalyzer
         </Link>
         <span className="text-xs bg-blue-900/40 text-blue-300 border border-blue-800 px-2.5 py-1 rounded-full font-semibold">
-          Capstone 2025
+          Capstone By R001, R055 & R057
         </span>
       </div>
     </nav>

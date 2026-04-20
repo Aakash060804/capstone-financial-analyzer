@@ -10,7 +10,7 @@ export default function Topbar() {
           <span className="font-bold text-base tracking-tight" style={{ color: "var(--text)" }}>FinAnalyzer</span>
         </Link>
         <span className="text-xs font-semibold px-2.5 py-1 rounded-full border" style={{ color: "#3b7cf4", borderColor: "#1e3a5f", background: "rgba(59,124,244,0.08)" }}>
-          Capstone 2025
+          Capstone By R001, R055 & R057
         </span>
       </div>
     </header>
