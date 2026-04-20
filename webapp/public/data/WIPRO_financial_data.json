@@ -3,7 +3,7 @@
     "company_slug": "WIPRO",
     "company_name": "WIPRO",
     "face_value_inr": 2,
-    "generated_at": "2026-04-19T09:38:27.054975+00:00",
+    "generated_at": "2026-04-20T09:31:40.736645+00:00",
     "source": "Screener.in (consolidated statements)",
     "currency": "INR Crores"
   },
@@ -3163,44 +3163,44 @@
           {
             "metric": "Mar 2027",
             "Projected FCF (₹ Cr)": 4325.0,
-            "PV of FCF (₹ Cr)": 3604.0
+            "PV of FCF (₹ Cr)": 3793.0
           },
           {
             "metric": "Mar 2028",
             "Projected FCF (₹ Cr)": 4358.0,
-            "PV of FCF (₹ Cr)": 3027.0
+            "PV of FCF (₹ Cr)": 3354.0
           },
           {
             "metric": "Mar 2029",
             "Projected FCF (₹ Cr)": 4392.0,
-            "PV of FCF (₹ Cr)": 2542.0
+            "PV of FCF (₹ Cr)": 2965.0
           },
           {
             "metric": "Mar 2030",
             "Projected FCF (₹ Cr)": 4427.0,
-            "PV of FCF (₹ Cr)": 2135.0
+            "PV of FCF (₹ Cr)": 2621.0
           },
           {
             "metric": "Mar 2031",
             "Projected FCF (₹ Cr)": 4461.0,
-            "PV of FCF (₹ Cr)": 1793.0
+            "PV of FCF (₹ Cr)": 2317.0
           }
         ]
       },
       "valuation": {
-        "enterprise_value_cr": 24754.0,
+        "enterprise_value_cr": 39147.0,
         "net_debt_cr": 1057.0,
-        "equity_value_cr": 23697.0,
+        "equity_value_cr": 38090.0,
         "shares_outstanding_cr": 1049.0,
-        "intrinsic_value_per_share": 23.0,
-        "sum_pv_fcf_cr": 13101.0,
-        "pv_terminal_value_cr": 11653.0,
-        "terminal_value_cr": 28997.0
+        "intrinsic_value_per_share": 36.0,
+        "sum_pv_fcf_cr": 15050.0,
+        "pv_terminal_value_cr": 24097.0,
+        "terminal_value_cr": 46396.0
       },
       "assumptions": {
         "Base FCF (₹ Cr)": 4291.0,
         "FCF Growth Rate (%)": 0.78,
-        "WACC (%)": 20.0,
+        "WACC (%)": 14.0,
         "Terminal Growth Rate (%)": 4.0,
         "Projection Years": 5,
         "Net Debt (₹ Cr)": 1057.0,
@@ -3214,32 +3214,32 @@
         "Mar 2031": 4461.0
       },
       "pv_fcf": {
-        "Mar 2027": 3604.0,
-        "Mar 2028": 3027.0,
-        "Mar 2029": 2542.0,
-        "Mar 2030": 2135.0,
-        "Mar 2031": 1793.0
+        "Mar 2027": 3793.0,
+        "Mar 2028": 3354.0,
+        "Mar 2029": 2965.0,
+        "Mar 2030": 2621.0,
+        "Mar 2031": 2317.0
       },
-      "wacc_used": 20.0,
+      "wacc_used": 14.0,
       "terminal_growth_used": 4.0,
       "fcf_growth_used": 0.78,
       "monte_carlo": {
         "n_simulations": 10000,
-        "p10": 259.7734,
-        "p25": 267.674,
-        "p50": 278.6586,
-        "p75": 296.8657,
-        "p90": 323.0215,
-        "mean": 286.0509,
-        "std": 27.724,
-        "prob_within_20": 93.56,
-        "wacc_used": 0.2,
+        "p10": 389.4903,
+        "p25": 433.3431,
+        "p50": 493.8352,
+        "p75": 567.3396,
+        "p90": 651.8059,
+        "mean": 511.4999,
+        "std": 113.1987,
+        "prob_within_20": 69.48,
+        "wacc_used": 0.14,
         "tgr_used": 0.04,
-        "label_p25": "₹268",
-        "label_p50": "₹279",
-        "label_p75": "₹297",
-        "label_p10": "₹260",
-        "label_p90": "₹323"
+        "label_p25": "₹433",
+        "label_p50": "₹494",
+        "label_p75": "₹567",
+        "label_p10": "₹389",
+        "label_p90": "₹652"
       }
     },
     "sensitivity": {
@@ -3349,7 +3349,7 @@
       }
     },
     "wacc": {
-      "wacc": 0.2,
+      "wacc": 0.14,
       "cost_of_equity": 0.1038,
       "cost_of_debt": 0.0749,
       "beta": 0.65,
@@ -3365,8 +3365,8 @@
         "Cost of Debt: 7.49%  [Interest/Borrowings 3yr avg, raw=7.5%]",
         "Tax Rate: 24.3%  [3-year average from tax_pct]",
         "Capital Structure: Debt nan% / Equity nan%  [Book value Mar 2026: D=₹20,291Cr, E=₹nanCr]",
-        "WACC clamped from nan% to 20.00% (sanity bounds)",
-        "Dynamic WACC: 20.00%  [nan% × 10.38% + nan% × 7.49% × (1 - 24.3%)]"
+        "WACC was NaN/Inf (missing data) — using settings default 14.0%",
+        "Dynamic WACC: 14.00%  [nan% × 10.38% + nan% × 7.49% × (1 - 24.3%)]"
       ]
     },
     "prophet": {

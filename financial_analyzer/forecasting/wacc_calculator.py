@@ -120,6 +120,13 @@ def compute_wacc(
     # ── Step 6: Final WACC ────────────────────────────────────────────────────
     wacc = (equity_weight * ke) + (debt_weight * kd * (1 - tax_rate))
 
+    # Guard against NaN (e.g. missing balance sheet data) before clamping
+    import math as _math
+    if _math.isnan(wacc) or _math.isinf(wacc):
+        from config.settings import DCF_WACC
+        wacc = DCF_WACC
+        log.append(f"WACC was NaN/Inf (missing data) — using settings default {DCF_WACC*100:.1f}%")
+
     # Sanity bounds — WACC below 6% or above 20% is likely a data error
     wacc_raw = wacc
     wacc = max(0.06, min(0.20, wacc))
