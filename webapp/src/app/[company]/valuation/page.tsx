@@ -76,7 +76,7 @@ export default function ValuationPage() {
               ₹{val.intrinsic_value_per_share?.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </p>
             <p className="text-sm text-txt2 mt-2">
-              Based on WACC {((dcf.wacc_used ?? 0) * 100).toFixed(2)}% · Terminal Growth {dcf.terminal_growth_used}% · FCF Growth {dcf.fcf_growth_used?.toFixed(1)}%
+              Based on WACC {(dcf.wacc_used ?? 0).toFixed(2)}% · Terminal Growth {dcf.terminal_growth_used}% · FCF Growth {dcf.fcf_growth_used?.toFixed(1)}%
             </p>
           </div>
           <div className="flex gap-3 flex-wrap">
@@ -243,7 +243,7 @@ export default function ValuationPage() {
         <SectionCard title="Sensitivity Table" subtitle="Intrinsic Value per Share (₹) across WACC × Terminal Growth combinations">
           <FinTable table={sens.table} />
           <p className="text-xs text-muted mt-3">
-            Base case: WACC {((dcf.wacc_used ?? 0) * 100).toFixed(1)}% · Terminal Growth {dcf.terminal_growth_used}% → <span className="text-accent font-semibold num">₹{val.intrinsic_value_per_share?.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
+            Base case: WACC {(dcf.wacc_used ?? 0).toFixed(1)}% · Terminal Growth {dcf.terminal_growth_used}% → <span className="text-accent font-semibold num">₹{val.intrinsic_value_per_share?.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
           </p>
         </SectionCard>
       )}

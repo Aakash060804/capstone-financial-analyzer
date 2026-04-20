@@ -112,7 +112,7 @@ cp outputs/${slug}_Financial_Analysis.xlsx ../webapp/public/data/`}</pre>
             </div>
             <div className="card-sm">
               <p className="text-xs text-muted uppercase tracking-wider mb-1">WACC Used</p>
-              <p className="text-xl font-bold text-txt num">{((dcf.wacc_used ?? 0) * 100).toFixed(2)}%</p>
+              <p className="text-xl font-bold text-txt num">{(dcf.wacc_used ?? 0).toFixed(2)}%</p>
             </div>
             <div className="card-sm">
               <p className="text-xs text-muted uppercase tracking-wider mb-1">Terminal Growth</p>
